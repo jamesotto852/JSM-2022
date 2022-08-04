@@ -7,9 +7,16 @@ format:
     self-contained: false
     slide-number: true
     df-print: paged
+    bibliography: bibliography.bib
+    csl: annals-of-botany.csl
 knitr:
   opts_chunk: 
     fig-format: png
+---
+
+---
+nocite: |
+  @*
 ---
 
 ```{r setup_environment}
@@ -20,7 +27,7 @@ library("tidyverse")
 library("patchwork")
 library("ggdensity")
 
-theme_set(theme_bw(18)) 
+theme_set(theme_bw(13)) 
 
 theme_update(
   panel.grid.minor = element_blank()
@@ -40,7 +47,7 @@ theme_update(
 
 <h3> Baylor University  </h3>
 
-<h3> 2022-08-07 </h3>
+<h3> 8/7/2022 </h3>
 
 ![](Images/logo.png){.absolute top=270 left=670 width="300"}
 
@@ -72,7 +79,8 @@ df <- tibble(
 )
 
 p0 <- ggplot(df, aes(x, y)) +
-  geom_point(alpha = 1, size = 1) +
+  geom_point(alpha = 1, size = 1.5) +
+  theme_bw(20) +
   theme(axis.title = element_blank()) +
   coord_fixed(xlim = c(-3.5, 3.5), ylim = c(-3.5, 3.5), expand = FALSE)
 
@@ -83,14 +91,19 @@ p2 <- ggplot(df, aes(x, y)) +
   geom_density2d_filled() +
   scale_x_continuous(lim = c(-3.5, 3.5)) +
   scale_y_continuous(lim = c(-3.5, 3.5)) +
-  theme(axis.title = element_blank()) +
   coord_fixed(xlim = c(-3.5, 3.5), ylim = c(-3.5, 3.5), expand = FALSE) +
-  # theme(legend.position = "left")
-  theme(legend.position = "bottom")
+  theme_bw(20) +
+  labs(fill = NULL) +
+  theme(
+    legend.position = "bottom",
+    axis.title = element_blank()
+    )
 
 p3 <- ggplot(df, aes(x, y)) +
   geom_hdr() +
   coord_fixed(xlim = c(-3.5, 3.5), ylim = c(-3.5, 3.5), expand = FALSE) +
+  theme_bw(22) +
+  labs(alpha = NULL) +
   theme(
     axis.title = element_blank(),
     axis.text.y = element_blank(),
@@ -173,31 +186,21 @@ aligned_plots[[4]]
 ## Defining the HDR
 
 ::: {.fragment .fade-in fragment-index=1}
+<div style = "margin-top: 1em;">
 Let $f(x)$ be the density function of a random variable $X$.
 Then the $100(1 - \alpha)\%$ highest density region (HDR) is the subset $R(f_{\alpha})$ of the sample space of $X$ such that
 $R(f_{\alpha}) = \{x: f (x) \geq f_{\alpha}\}$ where $f_{\alpha}$ is the largest constant such that $\mathrm{P}\left\{{X \in R(f_{\alpha})}\right\} \geq 1 - \alpha$. 
+</div>
 :::
 
 ::: aside 
 ::: {.fragment .fade-in fragment-index=1}
-Hyndman reference
+@Hyndman1
 :::
 :::
 
-
----
-
-::: {.incremental}
-Advantages to plotting HDRs:
-
-- Inferentially relevant
-- Interpretable
-::: 
-  
   
 # `geom_hdr()`
-  
-## {auto-animate=true}
 
 ```{r}
 set.seed(1)
@@ -207,25 +210,35 @@ df <- tibble(
   y = rnorm(1000)
 )
 
-p_norm_kde <- ggplot(df, aes(x, y)) +
-  geom_hdr() +
+p_points <- ggplot(df, aes(x, y)) +
+  geom_point(size = .8) +
   coord_fixed(xlim = c(-3.75, 3.75), ylim = c(-3.75, 3.75), expand = FALSE) +
+  theme_bw(9) 
+  
+p_norm_kde <- ggplot(df, aes(x, y)) +
+  geom_hdr(xlim = c(-3.75, 3.75), ylim = c(-3.75, 3.75)) +
+  coord_fixed(xlim = c(-3.75, 3.75), ylim = c(-3.75, 3.75), expand = FALSE) +
+  theme_bw(9) +
   theme(legend.position = "none")
 
 p_norm_hist <- ggplot(df, aes(x, y)) +
-  geom_hdr(method = "histogram") +
+  geom_hdr(method = "histogram", xlim = c(-3.75, 3.75), ylim = c(-3.75, 3.75)) +
   coord_fixed(xlim = c(-3.75, 3.75), ylim = c(-3.75, 3.75), expand = FALSE) +
+  theme_bw(9) +
   theme(legend.position = "none")
 
 p_norm_param <- ggplot(df, aes(x, y)) +
-  geom_hdr(method = "mvnorm", xlim = c(-5, 5), ylim = c(-5, 5)) +
+  geom_hdr(method = "mvnorm", xlim = c(-3.75, 3.75), ylim = c(-3.75, 3.75)) +
   coord_fixed(xlim = c(-3.75, 3.75), ylim = c(-3.75, 3.75), expand = FALSE) +
+  theme_bw(9) +
   theme(legend.position = "none")
 
 
-aligned_plots <- align_patches(p_norm_kde, p_norm_param, p_norm_hist)
+aligned_plots <- align_patches(p_points, p_norm_kde, p_norm_param, p_norm_hist)
 
 ```
+
+## {transition=fade}
 ```{r}
 #| echo: true
 #| eval: false
@@ -233,14 +246,31 @@ aligned_plots <- align_patches(p_norm_kde, p_norm_param, p_norm_hist)
 df <- tibble(x = rnorm(1000), y = rnorm(1000))
 
 ggplot(df, aes(x, y)) + 
-  geom_hdr() +
-  coord_fixed()
+  geom_point()
 
 ```
 ```{r}
 #| fig-height: 4
 
 aligned_plots[[1]]
+```
+
+## {auto-animate=true transition=fade}
+
+```{r}
+#| echo: true
+#| eval: false
+
+df <- tibble(x = rnorm(1000), y = rnorm(1000))
+
+ggplot(df, aes(x, y)) + 
+  geom_hdr()
+
+```
+```{r}
+#| fig-height: 4
+
+aligned_plots[[2]]
 ```
 
 ## {auto-animate=true transition=fade}
@@ -255,14 +285,13 @@ df <- tibble(x = rnorm(1000), y = rnorm(1000))
 ggplot(df, aes(x, y)) + 
   geom_hdr(
     method = "kde"
-  ) +
-  coord_fixed()
+  )
 
 ```
 ```{r}
 #| fig-height: 4
 
-aligned_plots[[1]]
+aligned_plots[[2]]
 ```
 
 
@@ -278,14 +307,13 @@ df <- tibble(x = rnorm(1000), y = rnorm(1000))
 ggplot(df, aes(x, y)) + 
   geom_hdr(
     method = "mvnorm"
-  ) +
-  coord_fixed()
+  )
 
 ```
 ```{r}
 #| fig-height: 4
 
-aligned_plots[[2]]
+aligned_plots[[3]]
 ```
   
    
@@ -302,14 +330,13 @@ df <- tibble(x = rnorm(1000), y = rnorm(1000))
 ggplot(df, aes(x, y)) + 
   geom_hdr(
     method = "histogram"
-  ) +
-  coord_fixed()
+  )
 
 ```
 ```{r}
 #| fig-height: 4
 
-aligned_plots[[3]]
+aligned_plots[[4]]
 ``` 
 
 ## {transition=fade}
@@ -389,7 +416,10 @@ map2(geoms, titles, p_row) |>
   
 ![](Images/gorman-penguins.jpg){fig-align="center"}
   
-## Palmer Penguins {.smaller transition=fade}
+## Palmer Penguins {transition=fade}
+
+<div style = "font-size: .5em; margin-top: 2em">
+
 ```{r}
 library("palmerpenguins")
 
@@ -409,6 +439,8 @@ penguins |>
   slice_sample(prop = 1)
 ```
 
+</div>
+
 ---
 
 ## Palmer Penguins {.smaller transition=fade}
@@ -416,21 +448,19 @@ penguins |>
 p1 <- ggplot(penguins, aes(flipper_length_mm, bill_length_mm, fill = species)) +
   geom_point(position = "jitter", size = 2, shape = 21) +
   scale_fill_brewer(type = "qual") +
-  scale_x_continuous(lim = c(174, 232)) +
-  scale_y_continuous(lim = c(34, 56)) 
+  coord_cartesian(xlim = c(174, 232), ylim = c(34, 56))
 
 p2 <- ggplot(penguins, aes(flipper_length_mm, bill_length_mm, fill = species)) +
-  geom_hdr(probs = c(.95, .8, .6, .3)) +
+  geom_hdr(xlim = c(160, 250), ylim = c(30, 60), probs = c(.95, .8, .6, .3)) +
   scale_fill_brewer(type = "qual") +
-  scale_x_continuous(lim = c(174, 232)) +
-  scale_y_continuous(lim = c(34, 56)) 
+  coord_cartesian(xlim = c(174, 232), ylim = c(34, 56))
 
 p3 <- ggplot(penguins, aes(flipper_length_mm, bill_length_mm, fill = species)) +
-  geom_hdr(probs = c(.95, .8, .6, .3)) +
+  geom_hdr(xlim = c(160, 250), ylim = c(30, 60), probs = c(.95, .8, .6, .3)) +
   facet_wrap(vars(species)) +
   scale_fill_brewer(type = "qual") +
-  scale_x_continuous(lim = c(174, 232), breaks = c(180, 200, 220)) +
-  scale_y_continuous(lim = c(34, 56)) 
+  coord_cartesian(xlim = c(174, 232), ylim = c(34, 56)) +
+  scale_x_continuous(breaks = c(180, 200, 220))
 
 aligned_plots <- align_patches(p1, p2, p3)
 ```
@@ -532,8 +562,8 @@ p3 <- ggplot(faithful, aes(eruptions, waiting)) +
 (p1 + p2 + p3) &
   theme(legend.position = "none") &
   coord_cartesian(
-    xlim = c(1, 6),
-    ylim = c(40, 100)
+    xlim = c(.75, 6),
+    ylim = c(35, 102)
   )
 ```
 
@@ -543,7 +573,6 @@ p3 <- ggplot(faithful, aes(eruptions, waiting)) +
 ```{r}
 #| echo: true
 #| eval: false
-#| fig-width: 5
 
 p <- ggplot(faithful, aes(eruptions, waiting))
 
@@ -555,21 +584,29 @@ p +
 ```
 ```{r}
 #| fig-height: 4.5 
+#| fig-width: 7
+#| fig-align: center
 
 ggplot(faithful, aes(eruptions, waiting)) +
   geomtextpath::geom_textdensity2d(aes(level = after_stat(probs)), stat = "hdr_lines", alpha = 1, xlim = c(0, 7), ylim = c(30, 110)) +
   theme(legend.position = "none") +
   coord_cartesian(
-    xlim = c(1, 6),
-    ylim = c(40, 100)
+    xlim = c(.75, 6),
+    ylim = c(35, 102)
   )
 
 ```
 
 
 
+## References
+
+::: {#refs}
+:::
 
 
+## Thank you!
 
+(to-do)
 
 

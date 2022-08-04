@@ -6,4 +6,9 @@ body {
   scrollbar-width: none;
 }
 
+div .csl-entry {
+  margin-bottom: .3em;
+  font-size: .85em;
+}
+
 /*-- scss:defaults --*/
