@@ -243,9 +243,12 @@ aligned_plots[[5]]
 
 ::: {.fragment .fade-in fragment-index=1}
 <div style = "margin-top: 1em;">
-Let $f(x)$ be the density function of a random variable $X$.
-Then the $100(1 - \alpha)\%$ highest density region (HDR) is the subset $R(f_{\alpha})$ of the sample space of $X$ such that
-$R(f_{\alpha}) = \{x: f (x) \geq f_{\alpha}\}$ where $f_{\alpha}$ is the largest constant such that $\mathrm{P}\left\{{X \in R(f_{\alpha})}\right\} \geq 1 - \alpha$. 
+<p style = "line-height: 1.5; font-size:1.05em">
+Let $f(x, y)$ be the pdf of a random vector $\left( X, Y \right) \in \mathbb{R}^2$.
+Then for $\alpha \in (0,1)$ the $100(1 - \alpha)\%$ highest density region (HDR) is the subset $R(f_{\alpha}) \subset \mathbb{R}^2$ such that
+$R(f_{\alpha}) = \{(x, y): f (x, y) \geq f_{\alpha}\}$ where $f_{\alpha}$ is the largest constant such that 
+$\mathrm{P}\left[(X, Y) \in R(f_{\alpha})\right] \geq 1 - \alpha$. 
+</p>
 </div>
 :::
 
