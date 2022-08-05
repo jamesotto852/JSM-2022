@@ -274,26 +274,26 @@ p_points <- ggplot(df, aes(x, y)) +
   coord_fixed(xlim = c(-3.75, 3.75), ylim = c(-3.75, 3.75), expand = FALSE) +
   theme_bw(9) 
   
-p_norm_kde <- ggplot(df, aes(x, y)) +
+p_kde <- ggplot(df, aes(x, y)) +
   geom_hdr(xlim = c(-3.75, 3.75), ylim = c(-3.75, 3.75)) +
   coord_fixed(xlim = c(-3.75, 3.75), ylim = c(-3.75, 3.75), expand = FALSE) +
   theme_bw(9) +
   theme(legend.position = "none")
 
-p_norm_hist <- ggplot(df, aes(x, y)) +
+p_hist <- ggplot(df, aes(x, y)) +
   geom_hdr(method = "histogram", xlim = c(-3.75, 3.75), ylim = c(-3.75, 3.75)) +
   coord_fixed(xlim = c(-3.75, 3.75), ylim = c(-3.75, 3.75), expand = FALSE) +
   theme_bw(9) +
   theme(legend.position = "none")
 
-p_norm_param <- ggplot(df, aes(x, y)) +
+p_param <- ggplot(df, aes(x, y)) +
   geom_hdr(method = "mvnorm", xlim = c(-3.75, 3.75), ylim = c(-3.75, 3.75)) +
   coord_fixed(xlim = c(-3.75, 3.75), ylim = c(-3.75, 3.75), expand = FALSE) +
   theme_bw(9) +
   theme(legend.position = "none")
 
 
-aligned_plots <- align_patches(p_points, p_norm_kde, p_norm_param, p_norm_hist)
+aligned_plots <- align_patches(p_points, p_kde, p_param, p_hist)
 
 ```
 
@@ -627,7 +627,7 @@ p3 <- ggplot(faithful, aes(eruptions, waiting)) +
 ```
 
 
----
+## {transition="fade-out"}
 
 ```{r}
 #| echo: true
@@ -658,14 +658,240 @@ ggplot(faithful, aes(eruptions, waiting)) +
 
 
 
-## References
+## Related Projects {transition="fade"}
+
+<div style = "margin-top: 1em;">
+
+- [**hdrcde**](https://github.com/robjhyndman/hdrcde)
+- [**gghdr**](https://github.com/Sayani07/gghdr)
+- [**ggdist**](https://github.com/mjskay/ggdist)
+
+</div>
+
+
+## References {transition="fade"}
 
 ::: {#refs}
 :::
 
 
-## Thank you!
+# Thank you! {transition="fade"}
 
-(to-do)
+[jamesotto852.github.io/JSM-2022](https://jamesotto852.github.io/JSM-2022)
+
+
+## Additional Materials {visibility="uncounted"}
+
+
+```{r}
+#| fig-height: 4
+
+# plot options:
+y_lim <- c(-.0375, .41)
+loly_width <- 1.2
+loly_point <- 2.5
+loly_width_outline <- 1.45
+loly_point_outline <- 1.75
+hline_size <- .6
+label_size <- 3.25
+label_margin <- unit(.1, "lines")
+label_x_loc <- -2
+label_digits <- 3
+HDR_size <- 4.75
+HDR_y_loc <- -.018
+
+
+
+p1 <- ggplot() +
+  geom_function(fun = dnorm, xlim = c(-3.5, 3.5)) +
+  labs(x = NULL, y = NULL)
+
+grid <- tibble(
+  # Slightly asymmetric to prevent issues with f(x) = f(-x)?
+  x = seq(-3.5, 3.6, length.out = 26),
+  f = dnorm(x),
+  f_disc = f / sum(f)
+)
+
+p2 <- ggplot(grid, aes(x, f, color = f)) +
+  geom_segment(aes(xend = x, yend = 0), size = loly_width) +
+  geom_point(size = loly_point) +
+  scale_color_viridis_c(option = "magma", begin = .8, end = 0) +
+  labs(x = NULL, y = NULL) +
+  guides(
+    color = "none"
+  )
+
+grid <- grid |>
+  arrange(desc(f)) |>
+  mutate(prob = cumsum(f_disc))
+
+find_cutoff <- function(cutoffs, df) {
+  if (length(cutoffs) > 1) return(vapply(cutoffs, find_cutoff, numeric(1), df))
+
+  df |>
+    filter(prob >= cutoffs) |>
+    pluck("f", 1)
+}
+
+# These assume unimodality
+find_x_l <- function(cutoffs, df) {
+  if (length(cutoffs) > 1) return(vapply(cutoffs, find_x_l, numeric(1), df))
+
+  df |>
+    filter(f >= cutoffs) |>
+    pluck("x") |>
+    min()
+}
+
+find_x_u <- function(cutoffs, df) {
+  if (length(cutoffs) > 1) return(vapply(cutoffs, find_x_u, numeric(1), df))
+
+  df |>
+    filter(f >= cutoffs) |>
+    pluck("x") |>
+    max()
+}
+
+cutoff_df <- tibble(
+  probs = c(.50, .80, .95, .99),
+  alpha = 1 - probs,
+  cutoffs = find_cutoff(probs, grid),
+  x_l = find_x_l(cutoffs, grid),
+  x_u = find_x_u(cutoffs, grid)
+) |>
+  arrange(desc(probs))
+
+ex_cutoff <- .25
+ex_prob <- sum(grid$f_disc[grid$f >= ex_cutoff])
+
+p3 <- p2 +
+  geom_hline(aes(yintercept = cutoffs, color = cutoffs), size = hline_size, cutoff_df) +
+  geom_label(aes(x = label_x_loc, y = cutoffs, color = cutoffs), cutoff_df, size = label_size, label.padding = label_margin,
+             label = glue::glue("f[{cutoff_df$alpha}] == {round(cutoff_df$cutoffs, label_digits)}"), parse = TRUE) +
+  geom_segment(aes(y = HDR_y_loc, yend = HDR_y_loc, x = x_l, xend = x_u, color = cutoffs), size = HDR_size, cutoff_df, inherit.aes = FALSE)
+
+p2_linetype <- ggplot(grid, aes(x, f, color = f)) +
+  geom_segment(aes(xend = x, y = 0, yend = f, linetype = if_else(f >= ex_cutoff, "solid", "11")), size = loly_width) +
+  geom_point(aes(alpha = if_else(f >= ex_cutoff, 1, .4)), size = loly_point) +
+  geom_point(shape = 21, fill = NA, size = loly_point) +
+  geom_hline(aes(yintercept = ex_cutoff, color = ex_cutoff), size = hline_size) +
+  geom_label(aes(x = label_x_loc, y = ex_cutoff, color = ex_cutoff), cutoff_df, size = label_size, label.padding = label_margin,
+             label = glue::glue("tau == {ex_cutoff}"), parse = TRUE) +
+  scale_linetype_identity() +
+  scale_alpha_identity() +
+  scale_color_viridis_c(option = "magma", begin = .8, end = 0) +
+  labs(x = NULL, y = NULL) +
+  guides(
+    linetype = "none",
+    color = "none"
+  )
+
+(p1 +
+  (p2_linetype + p3 &
+     theme(
+       axis.title.y = element_blank(),
+       axis.text.y = element_blank(),
+       axis.ticks.y = element_blank()
+     )
+   ) &
+  scale_x_continuous(breaks = c(-2, 0, 2)) &
+  coord_cartesian(xlim = c(-2.8, 2.8), ylim = c(-.035, .44), expand = FALSE)) +
+  plot_layout(widths = c(1, 2))
+
+
+```
+
+
+## Additional Materials {visibility="uncounted"}
+
+```{r}
+#| fig-height: 4
+
+# plot options:
+y_lim <- c(-.0345, .44)
+data_point_size <- .4
+
+set.seed(1)
+df <- tibble(x = rnorm(200))
+
+df_kde <- density(df$x, n = 500) |>
+  with(tibble(x = x, probs = y)) |>
+  mutate(probs_d = probs / sum(probs))
+
+set.seed(1) # (for jittering)
+p1 <- ggplot(df_kde, aes(x, probs)) +
+  geom_line() +
+  geom_jitter(aes(x, y = .01), df, height = .025, size = data_point_size) +
+  labs(x = NULL, y = NULL) +
+  coord_cartesian(ylim = y_lim, expand = FALSE)
+
+df_kde <- df_kde |>
+  slice(round(seq(1, 500, length.out = 26))) |>
+  mutate(probs_d = probs / sum(probs))
+
+p2 <- ggplot(df_kde, aes(x, probs, color = probs)) +
+  geom_segment(aes(xend = x, yend = 0), size = loly_width) +
+  geom_point(size = loly_point) +
+  scale_color_viridis_c(option = "magma", begin = .8, end = 0) +
+  labs(x = NULL, y = NULL) +
+  guides(
+    color = "none"
+  ) 
+
+
+df_kde <- df_kde |>
+  arrange(desc(probs)) |>
+  mutate(f = probs, prob = cumsum(probs_d))
+
+cutoff_df <- tibble(
+  probs = c(.50, .80, .95, .99),
+  alpha = 1 - probs,
+  cutoffs = find_cutoff(probs, df_kde),
+  x_l = find_x_l(cutoffs, df_kde),
+  x_u = find_x_u(cutoffs, df_kde)
+) |>
+  arrange(desc(probs))
+
+ex_cutoff <- .25
+ex_prob <- sum(df_kde$probs_d[df_kde$probs >= ex_cutoff])
+
+p3 <- p2 +
+  geom_hline(aes(yintercept = cutoffs, color = cutoffs), size = hline_size, cutoff_df) +
+  geom_label(aes(x = label_x_loc, y = cutoffs, color = cutoffs), cutoff_df, size = label_size, label.padding = label_margin,
+             label = glue::glue("widehat(f)[{cutoff_df$alpha}] == {round(cutoff_df$cutoffs, label_digits)}"), parse = TRUE) +
+  geom_segment(aes(y = HDR_y_loc, yend = HDR_y_loc, x = x_l, xend = x_u, color = cutoffs), size = HDR_size, cutoff_df, inherit.aes = FALSE)
+
+p2_linetype <- ggplot(df_kde, aes(x, f, color = f)) +
+  geom_segment(aes(xend = x, y = 0, yend = f, linetype = if_else(f >= ex_cutoff, "solid", "11")), size = loly_width) +
+  geom_point(aes(alpha = if_else(f >= ex_cutoff, 1, .4)), size = loly_point) +
+  geom_point(shape = 21, fill = NA, size = loly_point) +
+  geom_hline(aes(yintercept = ex_cutoff, color = ex_cutoff), size = hline_size) +
+  geom_label(aes(x = label_x_loc, y = ex_cutoff, color = ex_cutoff), cutoff_df, size = label_size, label.padding = label_margin,
+             label = glue::glue("tau == {ex_cutoff}"), parse = TRUE) +
+  scale_linetype_identity() +
+  scale_alpha_identity() +
+  scale_color_viridis_c(option = "magma", begin = .8, end = 0) +
+  labs(x = NULL, y = NULL) +
+  guides(
+    linetype = "none",
+    color = "none"
+  ) +
+  coord_cartesian(ylim = y_lim, expand = FALSE)
+
+(p1 +
+  (p2_linetype + p3 &
+     theme(
+       axis.title.y = element_blank(),
+       axis.text.y = element_blank(),
+       axis.ticks.y = element_blank()
+     )
+   ) &
+  scale_x_continuous(breaks = c(-2, 0, 2)) &
+  coord_cartesian(xlim = c(-2.8, 2.8), ylim = c(-.035, .44), expand = FALSE)) +
+  plot_layout(widths = c(1, 2))
+
+
+```
 
 
