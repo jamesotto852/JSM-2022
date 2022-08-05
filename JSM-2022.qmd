@@ -59,11 +59,23 @@ theme_update(
 
 ---
 
-::: {.incremental}
-- **ggplot2** includes several ways to estimate and visualize densities for uni- and bivariate data
-  - Limited by the difficulty of interpreting density height
-- **ggdensity** provides interpretable visualizations via highest density regions
+<ul>
+
+<li> **ggplot2** includes several ways to estimate and visualize densities for uni- and bivariate data </li>
+
+<ul>
+
+::: {.fragment}
+<li> Limited by the difficulty of interpreting density height </li>
 :::
+
+</ul>
+
+::: {.fragment}
+<li> **ggdensity** provides interpretable visualizations via highest density regions </li>
+:::
+
+</ul>
 
 ## A Motivating Example{auto-animate=true}
 
@@ -682,6 +694,7 @@ ggplot(faithful, aes(eruptions, waiting)) +
 
 ## Additional Materials {visibility="uncounted"}
 
+::: {.r-stack}
 
 ```{r}
 #| fig-height: 4
@@ -803,8 +816,7 @@ p2_linetype <- ggplot(grid, aes(x, f, color = f)) +
 ```
 
 
-## Additional Materials {visibility="uncounted"}
-
+::: {.fragment}
 ```{r}
 #| fig-height: 4
 
@@ -894,4 +906,7 @@ p2_linetype <- ggplot(df_kde, aes(x, f, color = f)) +
 
 ```
 
+:::
+
+:::
 
