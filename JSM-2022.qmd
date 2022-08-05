@@ -111,7 +111,17 @@ p3 <- ggplot(df, aes(x, y)) +
     legend.position = "bottom"
   ) 
 
-aligned_plots <- align_patches(p0, p1, p2, p3)
+
+p4 <- p2 +
+  geomtextpath::geom_textdensity2d(
+    aes(level = after_stat(probs)), stat = "hdr_lines", straight = TRUE, 
+    size = 8, linewidth = 1.5, color = "white", alpha = 1,
+    xlim = c(-3.5, 3.5), ylim = c(-3.5, 3.5)
+  )
+  
+  
+
+aligned_plots <- align_patches(p0, p1, p2, p3, p4)
 ```
 
 :::: {.columns}
@@ -135,7 +145,7 @@ aligned_plots[[1]]
 
 ::::
 
-## A Motivating Example{auto-animate=true}
+## A Motivating Example{auto-animate=true transition="fade-out"}
 
 :::: {.columns}
 
@@ -181,6 +191,52 @@ aligned_plots[[4]]
 
 
 ::::
+
+
+
+## A Motivating Example{transition="fade"}
+
+:::: {.columns}
+
+::: {.column width="25%"}
+:::
+
+::: {.column width="50%"}
+
+
+::: {.r-stack}
+
+```{r}
+#| fig-height: 10
+#| fig-width: 9
+
+aligned_plots[[3]]
+
+```
+
+::: {.fragment .fade-in}
+```{r}
+#| fig-height: 10
+#| fig-width: 9
+
+aligned_plots[[5]]
+
+```
+:::
+:::
+
+:::
+
+
+
+:::
+
+::: {.column width="25%"}
+:::
+
+::::
+
+
 
 
 ## Defining the HDR
