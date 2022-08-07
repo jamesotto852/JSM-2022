@@ -239,10 +239,6 @@ aligned_plots[[5]]
 
 :::
 
-
-
-:::
-
 ::: {.column width="25%"}
 :::
 
